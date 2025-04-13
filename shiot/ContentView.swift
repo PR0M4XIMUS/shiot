@@ -23,9 +23,9 @@ struct ContentView: View {
                 
                 
                 
-                Button(action: {
-                    
-                }) {
+                NavigationLink{
+                    TwoPlayersView()
+                } label: {
                     Text("2 Players").foregroundStyle(Color(.black))
                         .padding()
                         .background(Color(.gray))
@@ -80,7 +80,9 @@ struct ContentView: View {
 }
 
 #Preview {
-    ContentView()
+    NavigationStack {
+        ContentView()
+    }
 }
 
 

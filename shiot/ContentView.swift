@@ -1,5 +1,11 @@
 import SwiftUI
 
+
+
+
+
+// Roma si Vanea, ne trogati moi cod
+
 struct ContentView: View {
     var body: some View {
         ZStack {

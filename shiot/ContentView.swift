@@ -71,6 +71,23 @@ struct ContentView: View {
                                 .font(.headline)
                         }
                     }
+                    
+                    /* Button(action: {
+                                           
+                                       }) {
+                                           HStack {
+                                               Image(systemName: "play.fill")
+                                                   .font(.title2)
+                                                   .foregroundStyle(.black)
+                                               
+                                               Text("Continue Game")
+                                                   .foregroundStyle(.black)
+                                           }
+                                           .padding()
+                                           .background(Color.blue)
+                                               .cornerRadius(15)
+                                       } */
+                    
 
                     HStack {
                         Spacer()

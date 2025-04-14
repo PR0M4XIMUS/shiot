@@ -1,21 +1,37 @@
 import SwiftUI
 
-// Vanea si Roma, ne trogati
-
 struct gamemodeSelect: View {
+    let numberOfPlayers: Int
+    @State private var playerNames: [String] = []
+
+    init(numberOfPlayers: Int) {
+        self.numberOfPlayers = numberOfPlayers
+        _playerNames = State(initialValue: Array(repeating: "", count: numberOfPlayers))
+    }
+
     var body: some View {
         ZStack {
             VStack {
-                Text("P1 name:").padding()
-                Text("P2 name:").padding()
-                Text("P3 name:").padding()
-            }.padding()
+                ForEach(0..<numberOfPlayers, id: \.self) { playerNumber in
+                    HStack {
+                        Text("P\(playerNumber + 1) name:").padding(.trailing, 5)
+                        TextField("Enter name", text: $playerNames[playerNumber])
+                            .textFieldStyle(RoundedBorderTextFieldStyle())
+                            .padding(.leading, 5)
+                    }
+                    .padding(.bottom, 10) 
+                }
+            }
+            .padding()
+            .onAppear {
+                playerNames = Array(repeating: "", count: numberOfPlayers)
+            }
         }
     }
 }
 
 #Preview {
     NavigationStack {
-        gamemodeSelect()
+        gamemodeSelect(numberOfPlayers: 3)
     }
 }

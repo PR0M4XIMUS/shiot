@@ -20,6 +20,9 @@ struct ContentView: View {
                     Text("SH!ØT")
                         .font(.system(size: 35, weight: .bold, design: .default))
                         .foregroundColor(.red)
+                    /* Text("made by: Saca Adrian, Bejenari Roma, Proscurchin Ivan")
+                        .font(.system(size: 10, weight: .bold, design: .default))
+                        .foregroundColor(.black) */
                 }
                 .padding(40)
 
@@ -100,9 +103,9 @@ struct ContentView: View {
                         }
                         .padding()
 
-                        Button(action: {
-                            print("Button tapped!")
-                        }) {
+                        NavigationLink {
+                            InfoHelpView()
+                        } label: {
                             Image(systemName: "questionmark.circle.fill")
                                 .font(.largeTitle)
                                 .foregroundColor(.blue)

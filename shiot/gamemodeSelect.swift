@@ -45,7 +45,8 @@ struct gamemodeSelect: View {
                 }
                 
                 
-                    Button{
+                NavigationLink {
+                    TwoPlayersView()
                     } label: {
                         
                         Image(systemName: "play.circle.fill")
@@ -53,6 +54,7 @@ struct gamemodeSelect: View {
                             .foregroundColor(.blue)
                             .padding()
                     }
+                    .isDetailLink(false)
                 
             }
             .padding(.horizontal, 90)

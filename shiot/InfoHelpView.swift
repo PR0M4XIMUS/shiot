@@ -33,7 +33,7 @@ struct InfoHelpView: View {
 
                     Text("   - Saca Adrian")
                         .foregroundColor(.white)
-                    Text("   - Bejenari Roma")
+                    Text("   - Bejenari Roman")
                         .foregroundColor(.white)
                     Text("   - Proscurchin Ivan")
                         .foregroundColor(.white)
@@ -52,7 +52,7 @@ struct InfoHelpView: View {
 
                         Spacer()
 
-                        Link("Donate via PayPal (Roma)", destination: URL(string: "https://www.paypal.me/BobPayPal")!)
+                        Link("Donate via PayPal (Roman)", destination: URL(string: "https://www.paypal.me/BobPayPal")!)
                             .foregroundColor(.yellow)
                         Spacer()
 

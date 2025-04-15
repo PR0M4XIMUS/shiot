@@ -46,7 +46,7 @@ struct gamemodeSelect: View {
                 
                 
                 NavigationLink {
-                    TwoPlayersView()
+                    TwoPlayersView()// need to add the logic for when i press only the 2 Players button, it should send me here
                     } label: {
                         
                         Image(systemName: "play.circle.fill")

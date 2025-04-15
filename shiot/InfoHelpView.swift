@@ -47,17 +47,8 @@ struct InfoHelpView: View {
                         .foregroundColor(.white)
 
                     HStack {
-                        Link("Donate via PayPal (Adrian)", destination: URL(string: "https://www.paypal.me/AlicePayPal")!)
+                        Link("Donate via PayPal", destination: URL(string: "https://paypal.me/promaximus255?country.x=MD&locale.x=en_US")!)
                             .foregroundColor(.yellow)
-
-                        Spacer()
-
-                        Link("Donate via PayPal (Roman)", destination: URL(string: "https://www.paypal.me/BobPayPal")!)
-                            .foregroundColor(.yellow)
-                        Spacer()
-
-                        Link("Donate via PayPal (Ivan)", destination: URL(string: "https://www.paypal.me/BobPayPal")!)
-                            .foregroundColor(.yellow) 
                     }
                     .padding(.top, 5)
 

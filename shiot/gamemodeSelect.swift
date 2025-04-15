@@ -3,6 +3,8 @@ import SwiftUI
 struct gamemodeSelect: View {
     let numberOfPlayers: Int
     @State private var playerNames: [String] = []
+    @State private var isOption1Selected = false
+    @State private var isOption2Selected = false
 
     init(numberOfPlayers: Int) {
         self.numberOfPlayers = numberOfPlayers
@@ -11,6 +13,12 @@ struct gamemodeSelect: View {
 
     var body: some View {
         ZStack {
+            
+            Image("paper_background")
+                .resizable()
+                .edgesIgnoringSafeArea(.all)
+                .scaledToFill()
+            
             VStack {
                 ForEach(0..<numberOfPlayers, id: \.self) { playerNumber in
                     HStack {
@@ -21,12 +29,43 @@ struct gamemodeSelect: View {
                     }
                     .padding(.bottom, 10) 
                 }
+                
+                HStack {
+                    Toggle(isOn: $isOption1Selected) {
+                                    Text("Bochika")
+                            
+                                }.padding()
+                                
+
+                                Toggle(isOn: $isOption2Selected) {
+                                    Text("Tiomka")
+                           
+                                }.padding()
+                                
+                }
+                
+                
+                    Button{
+                    } label: {
+                        
+                        Image(systemName: "play.circle.fill")
+                            .font(.system(size: 35))
+                            .foregroundColor(.blue)
+                            .padding()
+                    }
+                
             }
-            .padding()
+            .padding(.horizontal, 90)
             .onAppear {
                 playerNames = Array(repeating: "", count: numberOfPlayers)
+                
             }
+            
+            
         }
+        
+        
+        
     }
 }
 

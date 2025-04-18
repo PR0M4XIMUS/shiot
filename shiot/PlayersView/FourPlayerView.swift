@@ -56,10 +56,10 @@ struct NotebookBackground: View {
 struct FourPlayerView: View {
     @ObservedObject var viewModel = FourPlayerLogic()
     
-    // Custom fonts
-    let handwrittenFont = Font.custom("Noteworthy", size: 18)
-    let handwrittenHeadingFont = Font.custom("Noteworthy-Bold", size: 22)
-    let titleFont = Font.custom("Marker Felt", size: 32)
+    // Custom fonts - using simpler handwritten style
+    let handwrittenFont = Font.custom("Bradley Hand", size: 18)
+    let handwrittenHeadingFont = Font.custom("Bradley Hand", size: 22)
+    let titleFont = Font.custom("MarkerFelt-Thin", size: 30)
     
     private let inputRowID = "inputRowID"
     

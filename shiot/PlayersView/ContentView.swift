@@ -13,14 +13,14 @@ struct ContentView: View {
             VStack {
                 Spacer()
                 VStack {
-                    Text("BELØT")
+                    Text("ẞELØT")
                         .font(.system(size: 60, weight: .bold, design: .default))
                         .foregroundColor(.green)
 
                     Text("SH!ØT")
                         .font(.system(size: 35, weight: .bold, design: .default))
                         .foregroundColor(.red)
-                    /* Text("made by: Saca Adrian, Bejenari Roma, Proscurchin Ivan")
+                    /* Text("made by: Saca Adrian, Bejenari Roman, Proscurchin Ivan")
                         .font(.system(size: 10, weight: .bold, design: .default))
                         .foregroundColor(.black) */
                 }
@@ -94,23 +94,15 @@ struct ContentView: View {
 
                     HStack {
                         Spacer()
-                        Button(action: {
-                            print("Button tapped!")
-                        }) {
+                        NavigationLink {
+                            SettingsView()
+                        } label: {
                             Image(systemName: "gear.circle.fill")
                                 .font(.largeTitle)
                                 .foregroundColor(.blue)
                         }
                         .padding()
 
-                        NavigationLink {
-                            InfoHelpView()
-                        } label: {
-                            Image(systemName: "questionmark.circle.fill")
-                                .font(.largeTitle)
-                                .foregroundColor(.blue)
-                        }
-                        .padding()
                         Spacer()
                     }
                     .padding()

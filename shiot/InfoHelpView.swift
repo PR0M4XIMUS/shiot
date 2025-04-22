@@ -31,12 +31,24 @@ struct InfoHelpView: View {
                     Text("Made with ❤️ by:")
                         .foregroundColor(.white)
 
-                    Text("   - Saca Adrian")
-                        .foregroundColor(.white)
-                    Text("   - Bejenari Roman")
-                        .foregroundColor(.white)
-                    Text("   - Proscurchin Ivan")
-                        .foregroundColor(.white)
+                    HStack{
+                        Text("   - Saca Adrian")
+                            .foregroundColor(.white)
+                        Link("@PR0MAXIMUS", destination: URL(string: "https://t.me/PR0MAXIMUS")!)
+                            .foregroundColor(.yellow)
+                    }
+                    HStack{
+                        Text("   - Bejenari Roman")
+                            .foregroundColor(.white)
+                        Link("@VimeRushers", destination: URL(string: "https://t.me/VimeRushers")!)
+                            .foregroundColor(.yellow)
+                    }
+                    HStack{
+                        Text("   - Proscurchin Ivan")
+                            .foregroundColor(.white)
+                        Link("@vaniok56", destination: URL(string: "https://t.me/vaniok56")!)
+                            .foregroundColor(.yellow)
+                    }
 
                     Text("Support Us!")
                         .font(.title2)

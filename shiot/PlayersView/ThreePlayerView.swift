@@ -11,33 +11,32 @@ struct ThreePlayersView: View {
 
     var body: some View {
         ZStack {
-            Image("paper_background")
-                .resizable()
-                .edgesIgnoringSafeArea(.all)
-                .scaledToFill()
+            NotebookBackgroundView(hasRuledLines: true, hasMargin: true)
 
             VStack(spacing: 0) {
                 // Header
-                VStack {
-                    Text("ẞELØT - SH!ØT (3-Player)")
-                        .font(.title2)
-                        .fontWeight(.bold)
-                        .foregroundColor(.green)
+                NotebookTitle(text: "ẞELØT", subtitle: "SH!ØT - 3 Players")
+                    .slideInAnimation()
 
-                    if let trump = gameController.game.trump {
-                        HStack {
-                            Text("Trump: \(trump.rawValue)")
-                                .font(.headline)
-                                .foregroundColor(.red)
-                            if let trumpPlayer = gameController.game.trumpPlayer {
-                                Text("(\(trumpPlayer.name))")
-                                    .font(.subheadline)
-                            }
+                if let trump = gameController.game.trump {
+                    HStack(spacing: 16) {
+                        Text("Trump:")
+                            .font(.headline)
+                            .foregroundColor(.black)
+                        Text(trump.rawValue)
+                            .font(.system(size: 20, weight: .bold))
+                            .foregroundColor(.red)
+                        if let trumpPlayer = gameController.game.trumpPlayer {
+                            Text("(\(trumpPlayer.name))")
+                                .font(.subheadline)
+                                .foregroundColor(.black)
                         }
                     }
+                    .padding()
+                    .notebookCard()
                 }
-                .padding()
-                .background(Color.white.opacity(0.7))
+
+                NotebookDivider()
 
                 // Game Area
                 Group {
@@ -63,9 +62,12 @@ struct ThreePlayersView: View {
                 }
                 .frame(maxHeight: .infinity)
 
+                NotebookDivider()
+
                 // Scoreboard
                 ScoreboardView(gameController: gameController)
             }
+            .padding()
             .navigationTitle("3-Player Game")
             .alert("Error", isPresented: $gameController.showError) {
                 Button("OK") { gameController.showError = false }
@@ -89,68 +91,79 @@ struct ThreePlayerGamePlayView: View {
             // Current player info
             if let currentPlayer = gameController.getCurrentPlayer() {
                 HStack {
-                    Text("Current: \(currentPlayer.name)")
-                        .font(.headline)
-                        .foregroundColor(.blue)
-                    Spacer()
-                    if currentPlayer.combinations.count > 0 {
-                        Text("Combos: \(currentPlayer.combinations.count)")
+                    VStack(alignment: .leading, spacing: 4) {
+                        Text("Current Turn")
                             .font(.caption)
-                            .padding(4)
-                            .background(Color.yellow.opacity(0.5))
-                            .cornerRadius(4)
+                            .foregroundColor(.gray)
+                        Text(currentPlayer.name)
+                            .font(.system(size: 16, weight: .bold))
+                            .foregroundColor(.black)
+                    }
+
+                    Spacer()
+
+                    if currentPlayer.combinations.count > 0 {
+                        VStack(alignment: .trailing, spacing: 2) {
+                            Text("Combinations")
+                                .font(.caption)
+                                .foregroundColor(.gray)
+                            Text("\(currentPlayer.combinations.count)")
+                                .font(.system(size: 18, weight: .bold))
+                                .foregroundColor(.green)
+                        }
                     }
                 }
-                .padding()
+                .notebookCard()
             }
 
             // Cards on table
             if !gameController.game.currentTrick.playedCards.isEmpty {
-                VStack {
-                    Text("Cards on table:")
-                        .font(.headline)
-                    HStack {
+                VStack(spacing: 12) {
+                    Text("Cards on Table")
+                        .font(.system(size: 14, weight: .semibold))
+                        .foregroundColor(.black)
+
+                    HStack(spacing: 12) {
                         ForEach(Array(gameController.game.currentTrick.playedCards.values), id: \.id) { card in
-                            CardView(card: card, isSelected: false, action: {})
+                            NotebookCardDisplay(card: card, isSelected: false, action: {})
                         }
                     }
+                    .frame(maxWidth: .infinity)
                 }
-                .padding()
-                .background(Color.green.opacity(0.3))
-                .cornerRadius(8)
+                .notebookCard()
+                .pulseAnimation()
             }
 
             // Player's hand
             if let currentPlayer = gameController.getCurrentPlayer() {
-                VStack {
-                    Text("\(currentPlayer.name)'s hand:")
-                        .font(.headline)
-                    ScrollView(.horizontal) {
-                        HStack {
+                VStack(spacing: 12) {
+                    Text("\(currentPlayer.name) - \(currentPlayer.hand.count) cards")
+                        .font(.system(size: 14, weight: .semibold))
+                        .foregroundColor(.black)
+
+                    ScrollView(.horizontal, showsIndicators: false) {
+                        HStack(spacing: 8) {
                             ForEach(currentPlayer.hand, id: \.id) { card in
-                                CardView(
+                                NotebookCardDisplay(
                                     card: card,
                                     isSelected: selectedCard?.id == card.id,
                                     action: { selectedCard = card }
                                 )
+                                .slideInAnimation()
                             }
                         }
                     }
                 }
-                .padding()
+                .notebookCard()
 
-                Button("Play Selected Card") {
+                HandwrittenButton("Play Card") {
                     if let selected = selectedCard {
                         gameController.playCard(selected)
                         selectedCard = nil
                     }
                 }
                 .disabled(selectedCard == nil)
-                .padding()
-                .frame(maxWidth: .infinity)
-                .background(selectedCard != nil ? Color.green : Color.gray)
-                .foregroundColor(.white)
-                .cornerRadius(8)
+                .opacity(selectedCard != nil ? 1.0 : 0.5)
             }
 
             Spacer()

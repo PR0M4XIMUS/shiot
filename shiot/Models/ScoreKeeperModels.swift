@@ -72,7 +72,14 @@ class GameSession: ObservableObject {
     // MARK: - Score Management
     func addRoundScore(playerIndex: Int, points: Int) {
         guard playerIndex < players.count else { return }
-        players[playerIndex].roundScores.append(points)
+
+        // Ensure roundScores array is sized to include currentRound
+        while players[playerIndex].roundScores.count <= currentRound {
+            players[playerIndex].roundScores.append(0)
+        }
+
+        // Add to the current round's score (sum multiple entries)
+        players[playerIndex].roundScores[currentRound] += points
 
         // Ensure combinations array is properly sized
         while players[playerIndex].roundCombinations.count <= currentRound {
@@ -109,13 +116,28 @@ class GameSession: ObservableObject {
     }
 
     private func calculateBile(for roundIndex: Int) {
-        if playerCount == 2 || playerCount == 4 {
-            // 1v1 or 2v2: simple calculation
+        if playerCount == 2 {
+            // 1v1: simple calculation
             for (index, player) in players.enumerated() {
                 let roundPoints = (player.roundScores[safe: roundIndex] ?? 0) +
                                   (player.roundCombinations[safe: roundIndex]?.reduce(0) { $0 + $1.points } ?? 0)
                 let bile = roundPoints / 10
                 player.totalBile += bile
+            }
+        } else if playerCount == 4 {
+            // 2v2: team-based calculation
+            // Team 1: Players 0 + 2, Team 2: Players 1 + 3
+            let teams = [[0, 2], [1, 3]]
+            for team in teams {
+                let teamPoints = team.reduce(0) { sum, playerIndex in
+                    let roundPoints = (players[playerIndex].roundScores[safe: roundIndex] ?? 0) +
+                                      (players[playerIndex].roundCombinations[safe: roundIndex]?.reduce(0) { $0 + $1.points } ?? 0)
+                    return sum + roundPoints
+                }
+                let teamBile = teamPoints / 10
+                for playerIndex in team {
+                    players[playerIndex].totalBile += teamBile
+                }
             }
         } else if playerCount == 3 {
             // 3-player special algorithm

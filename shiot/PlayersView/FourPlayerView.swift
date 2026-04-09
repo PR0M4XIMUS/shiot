@@ -1,53 +1,163 @@
 import SwiftUI
 
-// Custom hand-drawn line
-struct HandDrawnLine: View {
-    var width: CGFloat
-    var color: Color = .blue.opacity(0.7)
-    
+struct FourPlayersView: View {
+    @StateObject var gameController: GameController
+    @State private var selectedCard: Card?
+    @State private var selectedTrump: Suit?
+
+    init(playerNames: [String]) {
+        _gameController = StateObject(wrappedValue: GameController(playerNames: playerNames))
+    }
+
     var body: some View {
-        Canvas { context, size in
-            var path = Path()
-            path.move(to: CGPoint(x: 0, y: 0))
-            
-            // Create slightly wavy line
-            for x in stride(from: 0, to: size.width, by: 2) {
-                let randomY = CGFloat.random(in: -0.8...0.8)
-                path.addLine(to: CGPoint(x: x, y: randomY))
+        ZStack {
+            Image("paper_background")
+                .resizable()
+                .edgesIgnoringSafeArea(.all)
+                .scaledToFill()
+
+            VStack(spacing: 0) {
+                // Header
+                VStack {
+                    Text("ẞELØT - SH!ØT (4-Player)")
+                        .font(.title2)
+                        .fontWeight(.bold)
+                        .foregroundColor(.green)
+
+                    if let trump = gameController.game.trump {
+                        HStack {
+                            Text("Trump: \(trump.rawValue)")
+                                .font(.headline)
+                                .foregroundColor(.red)
+                            if let trumpPlayer = gameController.game.trumpPlayer {
+                                Text("(\(trumpPlayer.name))")
+                                    .font(.subheadline)
+                            }
+                        }
+                    }
+                }
+                .padding()
+                .background(Color.white.opacity(0.7))
+
+                // Game Area
+                Group {
+                    switch gameController.game.currentPhase {
+                    case .waitingForPlayers, .dealing:
+                        WaitingForGameView(gameController: gameController)
+
+                    case .trumpSelection:
+                        TrumpSelectionView(gameController: gameController, selectedTrump: $selectedTrump)
+
+                    case .playing:
+                        FourPlayerGamePlayView(
+                            gameController: gameController,
+                            selectedCard: $selectedCard
+                        )
+
+                    case .roundEnd:
+                        RoundEndView(gameController: gameController)
+
+                    case .gameEnd:
+                        GameEndView(gameController: gameController)
+                    }
+                }
+                .frame(maxHeight: .infinity)
+
+                // Scoreboard
+                ScoreboardView(gameController: gameController)
             }
-            
-            // End line
-            path.addLine(to: CGPoint(x: size.width, y: 0))
-            
-            context.stroke(path, with: .color(color), lineWidth: width)
+            .navigationTitle("4-Player Game")
+            .alert("Error", isPresented: $gameController.showError) {
+                Button("OK") { gameController.showError = false }
+            } message: {
+                Text(gameController.errorMessage)
+            }
+            .onAppear {
+                gameController.startGame()
+            }
         }
-        .frame(height: width + 1)
     }
 }
 
-struct NotebookBackground: View {
+// MARK: - Four Player Game Play View
+struct FourPlayerGamePlayView: View {
+    @ObservedObject var gameController: GameController
+    @Binding var selectedCard: Card?
+
     var body: some View {
-        ZStack {
-            // Paper background
-            Color(red: 0.98, green: 0.97, blue: 0.94)
-                .edgesIgnoringSafeArea(.all)
-            
-            // Horizontal ruled lines
-            VStack(spacing: 0) {
-                ForEach(0..<60, id: \.self) { _ in
+        VStack(spacing: 16) {
+            // Current player info
+            if let currentPlayer = gameController.getCurrentPlayer() {
+                HStack {
+                    Text("Current: \(currentPlayer.name)")
+                        .font(.headline)
+                        .foregroundColor(.blue)
                     Spacer()
-                    HandDrawnLine(width: 0.5, color: .blue.opacity(0.3))
+                    if currentPlayer.combinations.count > 0 {
+                        Text("Combos: \(currentPlayer.combinations.count)")
+                            .font(.caption)
+                            .padding(4)
+                            .background(Color.yellow.opacity(0.5))
+                            .cornerRadius(4)
+                    }
                 }
-                Spacer()
+                .padding()
             }
-            
-            // Red margin line
-            HStack {
-                Rectangle()
-                    .fill(Color.red.opacity(0.4))
-                    .frame(width: 1)
-                    .padding(.leading, 25)
-                Spacer()
+
+            // Cards on table
+            if !gameController.game.currentTrick.playedCards.isEmpty {
+                VStack {
+                    Text("Cards on table:")
+                        .font(.headline)
+                    HStack {
+                        ForEach(Array(gameController.game.currentTrick.playedCards.values), id: \.id) { card in
+                            CardView(card: card, isSelected: false, action: {})
+                        }
+                    }
+                }
+                .padding()
+                .background(Color.green.opacity(0.3))
+                .cornerRadius(8)
+            }
+
+            // Player's hand
+            if let currentPlayer = gameController.getCurrentPlayer() {
+                VStack {
+                    Text("\(currentPlayer.name)'s hand:")
+                        .font(.headline)
+                    ScrollView(.horizontal) {
+                        HStack {
+                            ForEach(currentPlayer.hand, id: \.id) { card in
+                                CardView(
+                                    card: card,
+                                    isSelected: selectedCard?.id == card.id,
+                                    action: { selectedCard = card }
+                                )
+                            }
+                        }
+                    }
+                }
+                .padding()
+
+                Button("Play Selected Card") {
+                    if let selected = selectedCard {
+                        gameController.playCard(selected)
+                        selectedCard = nil
+                    }
+                }
+                .disabled(selectedCard == nil)
+                .padding()
+                .frame(maxWidth: .infinity)
+                .background(selectedCard != nil ? Color.green : Color.gray)
+                .foregroundColor(.white)
+                .cornerRadius(8)
+            }
+
+            Spacer()
+        }
+        .padding()
+    }
+}
             }
         }
     }

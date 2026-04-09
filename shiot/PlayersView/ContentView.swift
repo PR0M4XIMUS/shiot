@@ -60,7 +60,7 @@ struct ContentView: View {
                     }
 
                     NavigationLink {
-                        gamemodeSelect(numberOfPlayers: 2)
+                        gamemodeSelect(numberOfPlayers: 4)
                     } label: {
                         ZStack {
                             Image("scribble_button")

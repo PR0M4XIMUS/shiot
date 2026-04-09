@@ -5,6 +5,7 @@ struct gamemodeSelect: View {
     @State private var playerNames: [String] = []
     @State private var isOption1Selected = false
     @State private var isOption2Selected = false
+    @State private var showGame = false
 
     init(numberOfPlayers: Int) {
         self.numberOfPlayers = numberOfPlayers
@@ -13,61 +14,83 @@ struct gamemodeSelect: View {
 
     var body: some View {
         ZStack {
-            
             Image("paper_background")
                 .resizable()
                 .edgesIgnoringSafeArea(.all)
                 .scaledToFill()
-            
-            VStack {
-                ForEach(0..<numberOfPlayers, id: \.self) { playerNumber in
-                    HStack {
-                        Text("P\(playerNumber + 1) name:").padding(.trailing, 5)
-                        TextField("Enter name", text: $playerNames[playerNumber])
-                            .textFieldStyle(RoundedBorderTextFieldStyle())
-                            .padding(.leading, 5)
-                    }
-                    .padding(.bottom, 10) 
-                }
-                
-                HStack {
-                    Toggle(isOn: $isOption1Selected) {
-                                    Text("Bochika")
-                            
-                                }.padding()
-                                
 
-                                Toggle(isOn: $isOption2Selected) {
-                                    Text("Tiomka")
-                           
-                                }.padding()
-                                
-                }
-                
-                
-                NavigationLink {
-                    TwoPlayersView()// need to add the logic for when i press only the 2 Players button, it should send me here
-                    } label: {
-                        
-                        Image(systemName: "play.circle.fill")
-                            .font(.system(size: 35))
-                            .foregroundColor(.blue)
-                            .padding()
+            VStack(spacing: 16) {
+                Text("ẞELØT - SH!ØT")
+                    .font(.title)
+                    .fontWeight(.bold)
+                    .foregroundColor(.green)
+                    .padding()
+
+                Text("\(numberOfPlayers)-Player Game Setup")
+                    .font(.headline)
+
+                // Player name inputs
+                VStack(spacing: 12) {
+                    ForEach(0..<numberOfPlayers, id: \.self) { playerNumber in
+                        HStack {
+                            Text("Player \(playerNumber + 1):")
+                                .frame(width: 100, alignment: .leading)
+                            TextField("Name", text: $playerNames[playerNumber])
+                                .textFieldStyle(RoundedBorderTextFieldStyle())
+                        }
                     }
-                    .isDetailLink(false)
-                
+                }
+                .padding()
+                .background(Color.white.opacity(0.7))
+                .cornerRadius(8)
+
+                // Game options
+                VStack(spacing: 12) {
+                    Toggle(isOn: $isOption1Selected) {
+                        Text("Bochika Mode")
+                    }
+                    Toggle(isOn: $isOption2Selected) {
+                        Text("Tiomka Mode")
+                    }
+                }
+                .padding()
+                .background(Color.blue.opacity(0.1))
+                .cornerRadius(8)
+
+                Spacer()
+
+                // Start button
+                NavigationLink(
+                    destination: {
+                        if numberOfPlayers == 2 {
+                            TwoPlayersView(playerNames: playerNames.map { $0.isEmpty ? "Player" : $0 })
+                        } else if numberOfPlayers == 3 {
+                            ThreePlayersView(playerNames: playerNames.map { $0.isEmpty ? "Player" : $0 })
+                        } else {
+                            FourPlayersView(playerNames: playerNames.map { $0.isEmpty ? "Player" : $0 })
+                        }
+                    },
+                    isActive: $showGame
+                ) {
+                    Button(action: { showGame = true }) {
+                        HStack {
+                            Image(systemName: "play.circle.fill")
+                                .font(.title2)
+                            Text("Start Game")
+                                .font(.headline)
+                        }
+                        .frame(maxWidth: .infinity)
+                        .padding()
+                        .background(Color.green)
+                        .foregroundColor(.white)
+                        .cornerRadius(8)
+                    }
+                }
+
+                Spacer()
             }
-            .padding(.horizontal, 90)
-            .onAppear {
-                playerNames = Array(repeating: "", count: numberOfPlayers)
-                
-            }
-            
-            
+            .padding()
         }
-        
-        
-        
     }
 }
 

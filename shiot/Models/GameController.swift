@@ -88,7 +88,7 @@ class GameController: ObservableObject {
 
     // MARK: - Special Rules
     private func checkSpecialRules() {
-        let playedCards = Array(game.currentTrick.playedCards.values)
+        let playedCards = game.currentTrick.playedCards.map { $0.card }
 
         // Check for 8888 (cancels all combinations except Bela)
         let eights = playedCards.filter { $0.rank == .eight }

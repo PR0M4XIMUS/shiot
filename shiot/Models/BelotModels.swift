@@ -268,15 +268,13 @@ class BelotGame: ObservableObject {
     private func dealAdditionalCards() {
         guard let deckCard = deckCard else { return }
 
-        var cardIndex: Int?
-        if let startIndex = deck.firstIndex(of: deckCard) {
-            cardIndex = deck.index(after: startIndex).min(deck.endIndex)
-        } else {
-            cardIndex = 0
+        var startIdx = 0
+        if let deckCardIndex = deck.firstIndex(of: deckCard) {
+            let nextIndex = deck.index(after: deckCardIndex)
+            startIdx = deck.distance(from: deck.startIndex, to: nextIndex)
         }
 
         // Each player gets 3 more cards
-        guard let startIdx = cardIndex else { return }
         var currentIdx = startIdx
 
         for _ in 0..<3 {
@@ -306,7 +304,8 @@ class BelotGame: ObservableObject {
     }
 
     func answerTrumpSelection(accepts: Bool) {
-        guard let player = currentRound?.players[turnPlayerIndex] else { return }
+        guard turnPlayerIndex < players.count else { return }
+        let player = players[turnPlayerIndex]
 
         if accepts {
             trump = deckCard?.suit
@@ -396,14 +395,26 @@ class BelotGame: ObservableObject {
     }
 
     private func isCardWinning(_ card: Card, against: Card, firstSuit: Suit) -> Bool {
-        guard let trump = trump else { return card.suit == against.suit && card.rank > against.rank }
+        guard let trump = trump else {
+            return card.suit == against.suit && card.rank > against.rank
+        }
 
-        if card.suit == trump && against.suit != trump {
+        // If against card is trump, only higher trump can win
+        if against.suit == trump {
+            return card.suit == trump && card.rank > against.rank
+        }
+
+        // If card is trump and against is not, card wins
+        if card.suit == trump {
             return true
         }
-        if card.suit == against.suit {
+
+        // If both same suit (and not trump), higher rank wins
+        if card.suit == against.suit && card.suit == firstSuit {
             return card.rank > against.rank
         }
+
+        // Card doesn't win in any other case
         return false
     }
 

@@ -5,6 +5,7 @@ class GameController: ObservableObject {
     @Published var gameHistory: [Int: (winner: String, bile: Int)] = [:]
     @Published var errorMessage: String = ""
     @Published var showError: Bool = false
+    @Published var currentWinThreshold: Int = 51
 
     let playerNames: [String]
 
@@ -118,9 +119,17 @@ class GameController: ObservableObject {
     }
 
     func continueToNextRound() {
-        if game.hasGameEnded() {
+        // Check if game should end with current threshold
+        if game.hasGameEnded(winThreshold: currentWinThreshold) {
             endGame()
         } else {
+            // Check if we need to escalate the threshold
+            let playersOverThreshold = game.players.filter { $0.totalBile >= currentWinThreshold }.count
+            if playersOverThreshold > 1 {
+                // Escalate threshold by 50
+                currentWinThreshold += 50
+            }
+
             game.dealerIndex = (game.dealerIndex + 1) % game.playerCount
             game.completedRounds[game.currentRound?.roundNumber ?? 0] = game.currentRound
             game.startNewRound()

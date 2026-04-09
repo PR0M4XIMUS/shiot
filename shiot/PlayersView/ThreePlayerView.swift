@@ -124,7 +124,7 @@ struct ThreePlayerGamePlayView: View {
                         .foregroundColor(.black)
 
                     HStack(spacing: 12) {
-                        ForEach(Array(gameController.game.currentTrick.playedCards.values), id: \.id) { card in
+                        ForEach(gameController.game.currentTrick.playedCards, id: \.0) { playerIndex, card in
                             NotebookCardDisplay(card: card, isSelected: false, action: {})
                         }
                     }

@@ -85,6 +85,7 @@ struct TwoPlayersView: View {
 struct WaitingForGameView: View {
     @ObservedObject var gameController: GameController
     @State private var dotCount = 1
+    @State private var timer: Timer?
 
     var body: some View {
         VStack(spacing: 20) {
@@ -103,9 +104,13 @@ struct WaitingForGameView: View {
                 }
             }
             .onAppear {
-                Timer.scheduledTimer(withTimeInterval: 0.5, repeats: true) { _ in
+                timer = Timer.scheduledTimer(withTimeInterval: 0.5, repeats: true) { _ in
                     dotCount = (dotCount % 3) + 1
                 }
+            }
+            .onDisappear {
+                timer?.invalidate()
+                timer = nil
             }
 
             Spacer()
@@ -238,7 +243,7 @@ struct GamePlayView: View {
                         .foregroundColor(.black)
 
                     HStack(spacing: 12) {
-                        ForEach(Array(gameController.game.currentTrick.playedCards.values), id: \.id) { card in
+                        ForEach(gameController.game.currentTrick.playedCards, id: \.0) { playerIndex, card in
                             NotebookCardDisplay(card: card, isSelected: false, action: {})
                         }
                     }
@@ -395,18 +400,6 @@ struct GameEndView: View {
             }
 
             Spacer()
-
-            NavigationLink(destination: ContentView()) {
-                HStack {
-                    Image(systemName: "house.fill")
-                    Text("Back to Menu")
-                }
-                .frame(maxWidth: .infinity)
-                .padding(.vertical, 12)
-                .background(Color.blue.opacity(0.3))
-                .border(Color.black, width: 2)
-                .foregroundColor(.black)
-            }
         }
         .padding()
     }

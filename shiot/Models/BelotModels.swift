@@ -48,6 +48,11 @@ struct Card: Identifiable, Codable, Equatable {
         self.rank = rank
     }
 
+    // Equatable conformance - cards are equal if suit and rank match
+    static func == (lhs: Card, rhs: Card) -> Bool {
+        lhs.suit == rhs.suit && lhs.rank == rhs.rank
+    }
+
     /// Points value of card (without trump bonus)
     func basePoints() -> Int {
         switch rank {
@@ -171,12 +176,12 @@ class Round {
 
 // MARK: - Trick
 struct Trick {
-    var playedCards: [Player: Card] = [:]
+    var playedCards: [(playerIndex: Int, card: Card)] = []
     var winnerIndex: Int?
     var points: Int = 0
 
-    mutating func playCard(player: Player, card: Card) {
-        playedCards[player] = card
+    mutating func playCard(playerIndex: Int, card: Card) {
+        playedCards.append((playerIndex, card))
     }
 
     func isTrickComplete(playerCount: Int) -> Bool {
@@ -261,19 +266,24 @@ class BelotGame: ObservableObject {
     }
 
     private func dealAdditionalCards() {
-        var cardIndex = deck.firstIndex(of: deckCard ?? Card(suit: .hearts, rank: .seven))
-        if let startIndex = cardIndex {
-            cardIndex = deck.index(after: startIndex)
+        guard let deckCard = deckCard else { return }
+
+        var cardIndex: Int?
+        if let startIndex = deck.firstIndex(of: deckCard) {
+            cardIndex = deck.index(after: startIndex).min(deck.endIndex)
         } else {
             cardIndex = 0
         }
 
         // Each player gets 3 more cards
+        guard let startIdx = cardIndex else { return }
+        var currentIdx = startIdx
+
         for _ in 0..<3 {
             for playerIndex in 0..<playerCount {
-                if cardIndex ?? 0 < deck.count {
-                    players[playerIndex].hand.append(deck[cardIndex ?? 0])
-                    cardIndex = (cardIndex ?? 0) + 1
+                if currentIdx < deck.count {
+                    players[playerIndex].hand.append(deck[currentIdx])
+                    currentIdx += 1
                 }
             }
         }
@@ -337,7 +347,8 @@ class BelotGame: ObservableObject {
     }
 
     func playCard(_ card: Card) {
-        guard let player = currentRound?.players[turnPlayerIndex] else { return }
+        guard turnPlayerIndex < players.count else { return }
+        let player = players[turnPlayerIndex]
 
         // Remove card from hand
         if let index = player.hand.firstIndex(of: card) {
@@ -345,7 +356,7 @@ class BelotGame: ObservableObject {
         }
 
         // Add to trick
-        currentTrick.playCard(player: player, card: card)
+        currentTrick.playCard(playerIndex: turnPlayerIndex, card: card)
 
         // Check if trick is complete
         if currentTrick.isTrickComplete(playerCount: playerCount) {
@@ -356,30 +367,25 @@ class BelotGame: ObservableObject {
     }
 
     func completeTrick() {
-        // Determine winner
-        let cardsInPlay = Array(currentTrick.playedCards.values)
+        guard !currentTrick.playedCards.isEmpty else { return }
+
+        let cardsInPlay = currentTrick.playedCards.map { $0.card }
         guard let firstCard = cardsInPlay.first else { return }
 
         let firstSuit = firstCard.suit
         var winningCard = firstCard
-        var winner: Player?
+        var winnerIndex: Int = currentTrick.playedCards[0].playerIndex
 
-        for (player, card) in currentTrick.playedCards {
+        for (playerIndex, card) in currentTrick.playedCards {
             if isCardWinning(card, against: winningCard, firstSuit: firstSuit) {
                 winningCard = card
-                winner = player
+                winnerIndex = playerIndex
             }
         }
 
-        if let winner = winner {
-            let points = cardsInPlay.reduce(0) { $0 + $1.points(trump: trump ?? .hearts) }
-            winner.roundScore += points
-
-            // Next trick starts with winner
-            if let winnerIndex = players.firstIndex(of: winner) {
-                turnPlayerIndex = winnerIndex
-            }
-        }
+        let points = cardsInPlay.reduce(0) { $0 + $1.points(trump: trump ?? .hearts) }
+        players[winnerIndex].roundScore += points
+        turnPlayerIndex = winnerIndex
 
         currentTrick = Trick()
 
@@ -423,8 +429,10 @@ class BelotGame: ObservableObject {
                     .sorted { $0.rank < $1.rank }
 
                 detectSequences(in: suitCards, suit: suit, for: player)
-                detectFourOfAKind(in: player.hand, for: player)
             }
+
+            // Check four-of-a-kind (only once per player)
+            detectFourOfAKind(in: player.hand, for: player)
         }
     }
 
@@ -570,15 +578,11 @@ class BelotGame: ObservableObject {
         }
     }
 
-    func hasGameEnded() -> Bool {
-        let winThreshold = 51
-        let winners = players.filter { $0.totalBile > winThreshold }
+    func hasGameEnded(winThreshold: Int = 51) -> Bool {
+        let winners = players.filter { $0.totalBile >= winThreshold }
 
+        // Game ends when exactly one player exceeds the threshold
         if winners.count == 1 {
-            return true
-        } else if winners.count > 1 {
-            // Multiple winners - need to escalate threshold
-            // This should be handled by GameController
             return true
         }
         return false

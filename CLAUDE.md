@@ -4,7 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project Overview
 
-**Shiot** is a complete iOS implementation of the Belot card game, built entirely in Swift with SwiftUI. The app supports 2, 3, and 4-player game modes with full rule implementation, automatic scoring, combination detection, and the "bile" points system.
+**Shiot** is an iOS Belot game score counter app, built entirely in Swift with SwiftUI. The app helps players track scores from tabletop Belot card games across 2, 3, and 4-player formats. It implements all official Belot scoring rules and combination detection, automatically calculating bile (game points) to determine winners.
 
 ## Development Commands
 
@@ -31,141 +31,150 @@ xcodebuild -project shiot.xcodeproj -scheme shiot test -destination 'platform=iO
 
 ## Architecture & Code Organization
 
-### Core Game Logic (`Models/`)
+### Core Score Tracking (`Models/`)
 
-#### BelotModels.swift
-**Data structures for the complete Belot game:**
+#### ScoreKeeperModels.swift
+**Data structures for score management:**
 
-- **Card & Suit**: Represents playing cards with point calculations
-  - `basePoints()`: Points without trump bonus (7/8 = 0, 9 = 0, 10 = 10, J = 2, Q = 3, K = 4, A = 11)
-  - `points(trump:)`: Points with trump bonus (9 of trump = 14, J of trump = 20)
-  - Display: `"displayName"` (e.g., "J♥")
+- **RoundScoreEntry**: Represents a single round's scores and combinations
+  - `playerScores`: Points from tricks for each player
+  - `combinations`: Combinations claimed in the round
+  - `totalScores`: Calculated total including combinations
 
-- **Rank Enum**: Seven through Ace with comparison support
-- **Suit Enum**: Hearts, Diamonds, Clubs, Spades
+- **Combination**: Represents a detected combination
+  - `name`: Combination name (e.g., "Bela", "Tărcă")
+  - `points`: Points value (20, 50, 100, 150, 200, etc.)
 
-- **Combination System**: All Belot combinations with detection
-  - `CombinationType`: Bela (20 pts), Tărcă (20 pts), Sută (50-100 pts), etc.
-  - Four-of-a-kind detection (4 Nines = 150, 4 Jacks = 200, 4 Tens/Dames/Kings/Aces = 100)
-  - Special cases: 4 Sevens cancels round, 4 Eights cancels opponent combinations
+- **ScorekeeperPlayer**: Game participant tracking
+  - `roundScores`: Array of scores for each completed round
+  - `roundCombinations`: Array of combinations per round
+  - `totalBile`: Cumulative bile (game points)
+  - Calculated properties: `totalPoints`, `roundDetails`
 
-- **Player Class**: Represents a game participant
-  - `hand`: Current cards
-  - `roundScore`: Points from tricks this round
-  - `totalScore`: Total points (rounds + combinations)
-  - `combinations`: Detected combinations with points
-  - `totalBile`: Game points (bile) - win condition at 51+
-
-- **BelotGame Class**: Main game engine
-  - **Game Phases**: `waitingForPlayers`, `dealing`, `trumpSelection`, `playing`, `roundEnd`, `gameEnd`
-  - **Deck Management**: 24 cards (2-3 players, no 7s/8s) or 32 cards (4 players)
-  - **Trump Selection**: Automatic Jack rule, first-round pass option, second-round custom selection
-  - **Trick Management**: Proper card play validation with four rules:
-    1. Must follow suit if possible
-    2. Must play trump if no suit cards and have trump
-    3. Can play anything if no suit or trump
-    4. If trump on table, must beat it if possible
-  - **Scoring**: Points from tricks + combinations, with Pasledu (10 pt bonus for last trick)
-  - **Bile Calculation**: Different for 2-player (1v1), 3-player (special algorithm), and 4-player (2v2 teams)
-
-#### GameController.swift
-**Game flow management and rule enforcement:**
-
-- Manages game lifecycle from start to end
-- Validates card plays according to Belot rules
-- Detects and applies special rules (8888, 7777, Jack automatic play)
-- Calculates final scores and determines winners
-- Error handling with user-facing messages
+- **GameSession**: Main score tracking engine
+  - Score management (add/remove scores and combinations)
+  - Bile calculation for all game formats (2, 3, 4 player)
+  - Win condition checking with automatic escalation (51→101→151)
+  - Round management and game reset
 
 ### UI Layer (`PlayersView/`)
 
-**Game Flow Views (shared across player counts):**
-- `WaitingForGameView`: Initial setup screen
-- `TrumpSelectionView`: First/second trump selection UI
-- `GamePlayView` / `ThreePlayerGamePlayView` / `FourPlayerGamePlayView`: Active game play
-- `RoundEndView`: Round results and next button
-- `GameEndView`: Final game winner
-- `ScoreboardView`: Persistent player scores
-- `CardView`: Individual card display
+**Score Counter Views (specific to player count):**
+- `TwoPlayerScoreView.swift`: 2-player (1v1) score counter
+- `ThreePlayerScoreView.swift`: 3-player score counter with special algorithm
+- `FourPlayerScoreView.swift`: 4-player (2v2 teams) score counter
 
-**Game Views by Player Count:**
-- `TwoPlayersView`: 2-player full implementation with GameController
-- `ThreePlayersView`: 3-player with special 3-player bile algorithm
-- `FourPlayersView`: 4-player with team-based scoring
-- `gamemodeSelect`: Player setup and game options (Bochika/Tiomka toggles)
+**Shared Components (in views):**
+- `PlayerScoreInputCard`: Input field for trick points + combination management
+- `CombinationPickerView`: Selection interface for all Belot combinations
+- `ScoreSummaryView`: Leaderboard display with running totals
+- `gamemodeSelect.swift`: Player setup (names, game mode selection)
+- `ContentView.swift`: Main menu with player count selection
 
-**Navigation:**
-- `ContentView`: Main menu with player count selection
-- Proper routing from ContentView → gamemodeSelect → specific game view
+### Design System (`Utils/`)
 
-### Utilities (`Utils/`)
+**NotebookTheme.swift:**
+- `NotebookBackgroundView`: Paper-textured background with ruled lines and margin
+- `NotebookCardView`: Consistent card styling
+- `HandwrittenButton`: Hand-drawn style buttons with rotation
+- `NotebookCardDisplay`: Enhanced card presentation
+- `NotebookTitle`: Styled title component
+- `NotebookDivider`: Decorative separators
+- Custom animations (CardFlip, SlideIn, Pulse)
 
 **ViewUtilities.swift:**
-- `hideKeyboard()`: Extension for dismissing keyboard
-- `BelotButtonStyle`: Custom button styling
-- Helper extensions for view consistency
+- Helper extensions for views
+- Custom button styling
 
 ## Game Rules Implementation
 
 ### Card Values (Points)
-| Card | Base Points | Trump Points |
-|------|-------------|--------------|
-| 7, 8 | 0 | 0 |
-| 9 | 0 | 14 |
-| 10 | 10 | 10 |
-| Jack | 2 | 20 |
-| Queen, King, Ace | 3, 4, 11 | Same as base |
+| Card | Base Points |
+|------|-------------|
+| 7, 8, 9 | 0 |
+| 10 | 10 |
+| Jack | 2 |
+| Queen | 3 |
+| King | 4 |
+| Ace | 11 |
 
-### Combinations (Belot)
-- **Bela**: Queen + King of trump (20 pts) - Always counted
-- **Tărcă** (Sequence of 2): Any suit (20 pts)
-- **Sută** (Sequence of 3): Any suit (50 pts)
-- **Jumătate** (Sequence of 4): Any suit (100 pts)
-- **Două sute** (Sequence of 5): Any suit (200 pts)
-- **Four-of-a-kind**:
-  - 4 Nines: 150 pts
-  - 4 Jacks: 200 pts
-  - 4 Tens/Dames/Kings/Aces: 100 pts
+*Note: Trump point values are input by users (J of trump = 20, 9 of trump = 14)*
 
-### Special Rules Implemented
-- **Jack Rule**: If first card shown is Jack, next player automatically plays in that trump
-- **8888 Rule**: All four Eights cancel opponent combinations (except Bela)
-- **7777 Rule**: All four Sevens cancel the round and redistribute cards
-- **Pasledu**: Last trick winner gets +10 bonus points
+### Supported Combinations
+
+**Sequences (by suit):**
+- Tărcă (2-card sequence): 20 points
+- Sută (3-card sequence): 50 points  
+- Jumătate (4-card sequence): 100 points
+- Două sute (5-card sequence): 200 points
+
+**Special Combinations:**
+- Bela (Q+K of trump): 20 points
+- Four Sevens: 0 points (cancels round)
+- Four Eights: 100 points (cancels opponent combinations)
+- Four Nines: 150 points
+- Four Jacks: 200 points
+- Four Tens/Queens/Kings/Aces: 100 points
 
 ### Bile Calculation
-- **2-Player (1v1)**: Each player's (total points / 10) rounded
-- **4-Player (2v2)**: Team points combined, then (team total / 10)
-- **3-Player (Special)**: Non-trump players get (points / 10), trump player gets remainder = total - non-trump
+
+**2-Player (1v1):** 
+- Each player: (total points) / 10 = bile
+
+**4-Player (2v2 Teams):**
+- Each team: (team total points) / 10 = bile
+- Bile distributed to both team members
+
+**3-Player (Special Algorithm):**
+- Non-leading players: (their points) / 10 = bile
+- Leading player: total bile - (other two players' bile) = bile
+- Handles special cases for equal bile counts
 
 ### Win Condition
-- First player to 51+ bile wins
-- If multiple players exceed 51, threshold escalates to 101, 151, etc.
+- First player/team to 51+ bile wins
+- If multiple players exceed threshold, escalates to 101, 151, etc.
 
-## Important Implementation Notes
+## Key Features
 
-- **Language**: Game messages are in Romanian (cultural context for Belot players)
-- **Card Dealing**: Automatic 5-card initial deal, then 3 more after trump is set
-- **State Management**: Uses `@ObservedObject` and `@StateObject` with MVVM pattern
-- **Validation**: Card play validation prevents illegal moves at UI level
-- **Error Handling**: User-friendly error messages with error alert system
+✅ **Complete Rule Set**
+- All official Belot combinations
+- Proper point calculations
+- Special rules (4-of-a-kind handling)
+- Score escalation for ties
+
+✅ **Multiple Game Formats**
+- 2-player (1v1) 
+- 3-player (with special bile algorithm)
+- 4-player (2v2 teams)
+
+✅ **Beautiful UI**
+- Notebook-themed design
+- Smooth animations
+- Clear score displays
+- Leaderboard tracking
+
+✅ **Score Management**
+- Add/remove round scores
+- Track combinations per round
+- Automatic bile calculation
+- Game history
 
 ## File Structure
+
 ```
 shiot/
 ├── shiotApp.swift              # Entry point
 ├── Models/
-│   ├── BelotModels.swift       # All game data structures and logic
-│   └── GameController.swift    # Game flow management
+│   └── ScoreKeeperModels.swift # All game models and logic
 ├── PlayersView/
 │   ├── ContentView.swift       # Main menu
 │   ├── gamemodeSelect.swift    # Player setup
-│   ├── TwoPlayerView.swift     # 2-player game
-│   ├── ThreePlayerView.swift   # 3-player game
-│   ├── FourPlayerView.swift    # 4-player game
-│   ├── SettingsView.swift      # Settings
-│   └── (other views)
+│   ├── TwoPlayerScoreView.swift    # 2-player counter
+│   ├── ThreePlayerScoreView.swift  # 3-player counter
+│   ├── FourPlayerScoreView.swift   # 4-player counter
+│   └── SettingsView.swift      # Settings
 ├── Utils/
+│   ├── NotebookTheme.swift     # UI design system
 │   └── ViewUtilities.swift     # Helper extensions
 └── Assets.xcassets/            # Images and resources
 ```
@@ -175,4 +184,13 @@ shiot/
 - **iOS Deployment Target**: iOS 15+
 - **Swift Version**: 5.9+
 - **SwiftUI**: Latest (NavigationStack, Canvas for custom drawing)
-- No external dependencies (pure native Swift/SwiftUI)
+- **No external dependencies** - pure native Swift/SwiftUI
+
+## Important Notes
+
+- **Language**: Game/score messages in English, with support for Romanian terminology
+- **State Management**: Uses `@StateObject` and `@ObservedObject` with MVVM pattern
+- **Score Input**: Players manually enter points from their physical Belot game
+- **Combination Selection**: UI provides all official combinations for quick selection
+- **Automatic Calculations**: Bile calculated automatically per official rules
+- **Game Persistence**: Currently resets when app closes (can be enhanced with UserDefaults/CoreData)

@@ -62,12 +62,15 @@ struct gamemodeSelect: View {
                 // Start button
                 NavigationLink(
                     destination: {
+                        let finalPlayerNames = playerNames.enumerated().map { index, name in
+                            name.isEmpty ? "Player \(index + 1)" : name
+                        }
                         if numberOfPlayers == 2 {
-                            TwoPlayersView(playerNames: playerNames.map { $0.isEmpty ? "Player" : $0 })
+                            TwoPlayersView(playerNames: finalPlayerNames)
                         } else if numberOfPlayers == 3 {
-                            ThreePlayersView(playerNames: playerNames.map { $0.isEmpty ? "Player" : $0 })
+                            ThreePlayersView(playerNames: finalPlayerNames)
                         } else {
-                            FourPlayersView(playerNames: playerNames.map { $0.isEmpty ? "Player" : $0 })
+                            FourPlayersView(playerNames: finalPlayerNames)
                         }
                     },
                     isActive: $showGame

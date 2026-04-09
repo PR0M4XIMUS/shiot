@@ -3,8 +3,6 @@ import SwiftUI
 struct gamemodeSelect: View {
     let numberOfPlayers: Int
     @State private var playerNames: [String] = []
-    @State private var isOption1Selected = false
-    @State private var isOption2Selected = false
     @State private var showGame = false
 
     init(numberOfPlayers: Int) {
@@ -26,7 +24,7 @@ struct gamemodeSelect: View {
                     .foregroundColor(.green)
                     .padding()
 
-                Text("\(numberOfPlayers)-Player Game Setup")
+                Text("\(numberOfPlayers)-Player Score Counter")
                     .font(.headline)
 
                 // Player name inputs
@@ -44,19 +42,6 @@ struct gamemodeSelect: View {
                 .background(Color.white.opacity(0.7))
                 .cornerRadius(8)
 
-                // Game options
-                VStack(spacing: 12) {
-                    Toggle(isOn: $isOption1Selected) {
-                        Text("Bochika Mode")
-                    }
-                    Toggle(isOn: $isOption2Selected) {
-                        Text("Tiomka Mode")
-                    }
-                }
-                .padding()
-                .background(Color.blue.opacity(0.1))
-                .cornerRadius(8)
-
                 Spacer()
 
                 // Start button
@@ -66,11 +51,11 @@ struct gamemodeSelect: View {
                             name.isEmpty ? "Player \(index + 1)" : name
                         }
                         if numberOfPlayers == 2 {
-                            TwoPlayersView(playerNames: finalPlayerNames)
+                            TwoPlayerScoreView(playerNames: finalPlayerNames)
                         } else if numberOfPlayers == 3 {
-                            ThreePlayersView(playerNames: finalPlayerNames)
+                            ThreePlayerScoreView(playerNames: finalPlayerNames)
                         } else {
-                            FourPlayersView(playerNames: finalPlayerNames)
+                            FourPlayerScoreView(playerNames: finalPlayerNames)
                         }
                     },
                     isActive: $showGame
@@ -79,7 +64,7 @@ struct gamemodeSelect: View {
                         HStack {
                             Image(systemName: "play.circle.fill")
                                 .font(.title2)
-                            Text("Start Game")
+                            Text("Start Counter")
                                 .font(.headline)
                         }
                         .frame(maxWidth: .infinity)

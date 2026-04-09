@@ -35,7 +35,7 @@ struct ThreePlayerScoreView: View {
                             PlayerScoreInputCard(
                                 gameSession: gameSession,
                                 player: player,
-                                onAddCombo: {}
+                                onAddCombo: { }
                             )
                         }
 

@@ -127,7 +127,7 @@ struct PlayerScoreInputCard: View {
             // Combinations List
             if !player.roundCombinations.indices.contains(gameSession.currentRound) ||
                player.roundCombinations[gameSession.currentRound].isEmpty {
-                Button(action: onAddCombo) {
+                Button(action: { showCombinationPopover = true }) {
                     HStack {
                         Image(systemName: "plus")
                         Text("Add Combination")
@@ -169,7 +169,7 @@ struct PlayerScoreInputCard: View {
                         .cornerRadius(4)
                     }
 
-                    Button(action: onAddCombo) {
+                    Button(action: { showCombinationPopover = true }) {
                         HStack {
                             Image(systemName: "plus")
                             Text("Add")
